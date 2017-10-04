@@ -9,6 +9,4 @@ var Todo = mongoose.model('Todo',{text:{
     min:-10,
     max:10
   }});
-console.log("Ready state: ",mongoose.connection.readyState);
-
 module.exports={Todo};

@@ -22,13 +22,13 @@ console.log(req.body);
 //res.send({status:`Delivered at: ${new Date()}` });
 
 //let newTodo = new Todo(req.body);
-let newTodo = new Todo(req.body);
+let newTodo = new Todo({text:req.body.text});
 
 newTodo.save().then((doc)=>{
   res.send(doc);
   console.log("Saved!");
 }).catch((err)=>{
-res.send(err);
+res.status(400).send(err);
 console.log("Error");
 });
 
@@ -38,6 +38,7 @@ app.listen(port,()=>{
   console.log("Express is up and running at server: ", port ," Time: ",new Date());
 });
 
+module.exports ={app};
 
 // var newTodo = new Todo({text:"Cook dinner"});
 //
