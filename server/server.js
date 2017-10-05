@@ -1,5 +1,6 @@
 const express = require("express");
 const bodyParser = require("body-parser");
+const _ = require("lodash");
 
 const{ObjectId} = require("mongodb");
 
@@ -76,12 +77,41 @@ app.delete("/todos/:id",(req,res)=>{
     if(!todo){
       return res.status(404).send();
     }
-    return res.send(todo);
+    return res.send({todo});
   }).catch((e)=>{
     return res.status(404).send();
   })
 });
 
+app.patch("/todos/:id",(req,res)=>{
+
+ let id = req.params.id;
+ if(!ObjectId.isValid(id)){
+   return res.status(404).send();
+ }
+
+let body = _.pick(req.body,["text","completed"]);
+
+if(_.isBoolean(body.completed)&&body.completed){
+  body.completed = true;
+  body.CompletedAt = new Date().getTime();
+}else{
+  body.completed = false;
+  body.CompletedAt = null;
+}
+
+ Todo.findByIdAndUpdate(id,{$set:body},{new:true}).then(
+   (todo)=>{
+     if(!todo){
+       return res.status(404).send();
+     }
+     res.send({todo});
+   }
+ ).catch((err)=>{
+   return res.status(404).send();
+ })
+
+});
 app.listen(port,()=>{
   console.log("Express is up and running at server: ", port ," Time: ",new Date());
 });
