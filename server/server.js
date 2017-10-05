@@ -11,8 +11,14 @@ let port = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
 
-app.get("/",(req,res)=>{
-  res.send("<h1> Hello again! </h1>");
+app.get("/todos",(req,res)=>{
+
+  Todo.find().then((todos)=>{
+    res.send({todos});
+  }).catch((e)=>{
+    res.status(400).send(e);
+  });
+
 });
 
 
