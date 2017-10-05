@@ -18,7 +18,8 @@ app.get("/todos",(req,res)=>{
   Todo.find().then((todos)=>{
     res.send({todos});
   }).catch((e)=>{
-    res.status(400).send(e);
+
+    res.status(400).send("<h1> Resource not found </h1>");
   });
 
 });
@@ -31,15 +32,15 @@ console.log("GET Todos/:id request ",new Date());
   let id = req.params.id;
 
   if(!ObjectId.isValid(id)){
-    res.status(404).send({error:"Invalid Id"});
+    return res.status(404).send({error:"Invalid Id"});
   }
   Todo.findById(id).then((todo)=>{
     if(!todo){
-      res.status(404).send();
+      return res.status(404).send("<h1> Resource not found </h1>");
     }
-    res.status(200).send({todo});
+    return res.status(200).send({todo});
   }).catch((e)=>{
-    res.status(400).send({});
+    return res.status(400).send("<h1> Resource not found </h1>");
   });
 
 });
@@ -53,11 +54,10 @@ console.log(req.body);
 let newTodo = new Todo({text:req.body.text});
 
 newTodo.save().then((doc)=>{
-  res.send(doc);
-  console.log("Saved!");
-}).catch((err)=>{
-res.status(400).send(err);
-console.log("Error");
+  return res.send(doc);
+  }).catch((err)=>{
+return res.status(400).send("<h1> Resource not found </h1>");
+
 });
 
 });

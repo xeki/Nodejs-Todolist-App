@@ -5,14 +5,15 @@ const{app}=require("./../server");
 const{Todo} = require("./../models/todo");
 const{user}=require("./../models/users");
 
-const todoList = [{text:"First to do"},{text:"Second to do"}];
+const{ObjectId} = require("mongodb");
+
+const todoList = [{_id:new ObjectId(),text:"First to do"},{_id:new ObjectId(),text:"Second to do"}];
 
 
 beforeEach((done)=>{
-  Todo.remove({}).then(
-    ()=>{
-  return Todo.insertMany(todoList);
-}).then(()=>done());
+  Todo.remove({})
+     .then(()=>{ return Todo.insertMany(todoList); })
+     .then(()=>done());
 });
 
 describe("POST /todos", ()=>{
@@ -70,4 +71,38 @@ describe("POST /todos", ()=>{
        });
 
      });
+
+     describe("/GET:/id",()=>{
+
+     it("should return a record",(done)=>{
+       let id = todoList[0]._id.toHexString();
+
+       request(app)
+       .get(`/todos/${id}`)
+       .expect(200)
+       .expect((res)=>{
+         expect(res.body.todo.text).toBe(todoList[0].text);
+       }).end(done);
+     });
+
+     it("should return 404 if todo id not found",(done)=>{
+       let tempId = new ObjectId();
+       tempId = tempId.toHexString();
+       request(app)
+       .get(`/todos/${tempId}`)
+       .expect(404)
+       .end(done);
+     });
+
+     it("should return 404 for non valid id",(done)=>{
+       request(app)
+       .get("/todos/what")
+       .expect(404)
+       .end(done);
+     });
+
+
+
+     });
+
   });
