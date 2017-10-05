@@ -66,6 +66,22 @@ return res.status(400).send("<h1> Resource not found </h1>");
 
 });
 
+app.delete("/todos/:id",(req,res)=>{
+
+  let id = req.params.id;
+  if(!ObjectId.isValid(id)){
+    return res.status(404).send();
+  }
+  Todo.findByIdAndRemove(id).then((todo)=>{
+    if(!todo){
+      return res.status(404).send();
+    }
+    return res.send(todo);
+  }).catch((e)=>{
+    return res.status(404).send();
+  })
+});
+
 app.listen(port,()=>{
   console.log("Express is up and running at server: ", port ," Time: ",new Date());
 });
