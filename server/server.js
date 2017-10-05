@@ -13,7 +13,7 @@ let port = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
 
-get("/",(req,res)=>{
+app.get("/",(req,res)=>{
   res.status(200).send("<h1> Welcome to Todo App Home </h1>");
 });
 
