@@ -1,3 +1,7 @@
+
+const{config} = require("./config/config");
+config();
+console.log("************Env: ",process.env.NODE_ENV);
 const express = require("express");
 const bodyParser = require("body-parser");
 const _ = require("lodash");
@@ -7,10 +11,10 @@ const{ObjectId} = require("mongodb");
 
 var{mongoose}=require("./db/mongoose");
 var{Todo}=require("./models/todo");
-var{user}=require("./models/users");
+var{User}=require("./models/users");
 
 var app = express();
-let port = process.env.PORT || 3000;
+let port = process.env.PORT;
 
 app.use(bodyParser.json());
 
@@ -112,6 +116,27 @@ if(_.isBoolean(body.completed)&&body.completed){
  })
 
 });
+
+//Users POST
+
+app.post("/users",(req,res)=>{
+  var userData = _.pick(req.body,["email","password","tokens"]);
+  var user = new User(userData);
+  console.log("User data: ",userData);
+  user.save().then(()=>{
+    return user.generateAutToken();
+    //res.send(user);
+
+  })
+  .then((token)=>{
+    res.header("x-auth",token).send({user});
+  } )
+  .catch((err)=>{
+    // console.log(err);
+    return res.status(400).send();
+  })
+});
+
 app.listen(port,()=>{
   console.log("Express is up and running at server: ", port ," Time: ",new Date());
 });

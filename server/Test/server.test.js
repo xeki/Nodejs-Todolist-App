@@ -3,17 +3,21 @@ const request=require("supertest");
 
 const{app}=require("./../server");
 const{Todo} = require("./../models/todo");
-const{user}=require("./../models/users");
+const{User}=require("./../models/users");
 
 const{ObjectId} = require("mongodb");
 
-const todoList = [{_id:new ObjectId(),text:"First to do"},{_id:new ObjectId(),text:"Second to do"}];
+const todoList = [{_id:new ObjectId(),text:"First test to do"},{_id:new ObjectId(),text:"Second test to do"}];
 
 
 beforeEach((done)=>{
+  User.remove().then((res)=>{
+    console.log("beforeEach user removed");
+  }).catch((e)=>{console.log(e);});
   Todo.remove({})
      .then(()=>{ return Todo.insertMany(todoList); })
      .then(()=>done());
+
 });
 
 describe("POST /todos", ()=>{
@@ -140,6 +144,56 @@ describe("POST /todos", ()=>{
     .delete("/todos/wrongId")
     .expect(404)
     .end(done);
+  });
+
+ });
+
+ describe("PATCH /todos/:id",()=>{
+
+ it("it should update a todo",(done)=>{
+
+   let hexId = todoList[0]._id.toHexString();
+   let body ={completed:true};
+
+   request(app)
+   .patch(`/todos/${hexId}`)
+   .send(body)
+   .expect(200)
+   .expect((result)=>{
+     expect(result.body.todo.completed).toBeTruthy();
+     expect(result.body.todo.CompletedAt).toBeTruthy();
+   }).end((e)=>done(e));
+ });
+
+ it("it should return 404 for a wrong id",(done)=>{
+   let hexId = new ObjectId().toHexString();
+   request(app)
+   .patch(`/todos/${hexId}`)
+   .expect(404)
+   .end((e)=>done(e));
+ });
+
+ it("It should return 404 fo invalid id",(done)=>{
+   request(app)
+   .patch("/todos/abc123")
+   .expect(404)
+   .end((e)=>done(e));
+ });
+
+ });
+
+ describe("POST /users",()=>{
+  it("should post a user",(done)=>{
+    let newUser = {"email":"123@server.com","password":"123abc","tokens":{"access":"access1","token":"token1"}};
+    request(app)
+    .post("/users")
+    .send(newUser)
+    .expect(200)
+    .expect((result)=>{
+      expect(result.body.user.email).toBe(newUser.email);
+      expect(result.body.user.password).toBeFalsy();
+    }).end((e)=>done(e));
+
   });
 
  });
