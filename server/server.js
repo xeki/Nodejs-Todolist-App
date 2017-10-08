@@ -1,7 +1,7 @@
 
 const{config} = require("./config/config");
 config();
-console.log("************Env: ",process.env.NODE_ENV);
+console.log("************Env: ",process.env.NODE_ENV,"********************");
 const express = require("express");
 const bodyParser = require("body-parser");
 const _ = require("lodash");
@@ -37,7 +37,7 @@ app.get("/todos",(req,res)=>{
 
 app.get("/todos/:id",(req,res)=>{
 
-console.log("GET Todos/:id request ",new Date());
+// console.log("GET Todos/:id request ",new Date());
 
   let id = req.params.id;
 
@@ -57,7 +57,7 @@ console.log("GET Todos/:id request ",new Date());
 
 
 app.post("/todos",(req,res)=>{
-console.log(req.body);
+// console.log(req.body);
 //res.send({status:`Delivered at: ${new Date()}` });
 
 //let newTodo = new Todo(req.body);
@@ -121,9 +121,8 @@ if(_.isBoolean(body.completed)&&body.completed){
 //Users POST
 
 app.post("/users",(req,res)=>{
-  var userData = _.pick(req.body,["email","password","tokens"]);
+  var userData = _.pick(req.body,["email","password"]);
   var user = new User(userData);
-  console.log("User data: ",userData);
   user.save().then(()=>{
     return user.generateAutToken();
     //res.send(user);
@@ -133,7 +132,7 @@ app.post("/users",(req,res)=>{
     res.header("x-auth",token).send({user});
   } )
   .catch((err)=>{
-    // console.log(err);
+    //  console.log(err);
     return res.status(400).send();
   })
 });

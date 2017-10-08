@@ -6,19 +6,13 @@ const{Todo} = require("./../models/todo");
 const{User}=require("./../models/users");
 
 const{ObjectId} = require("mongodb");
+const{todoList,populateTodos,userList,populateUsers}=require("./seed/seed");
 
-const todoList = [{_id:new ObjectId(),text:"First test to do"},{_id:new ObjectId(),text:"Second test to do"}];
+const jwt = require("jsonwebtoken");
 
 
-beforeEach((done)=>{
-  User.remove().then((res)=>{
-    console.log("beforeEach user removed");
-  }).catch((e)=>{console.log(e);});
-  Todo.remove({})
-     .then(()=>{ return Todo.insertMany(todoList); })
-     .then(()=>done());
-
-});
+beforeEach(populateTodos);
+beforeEach(populateUsers)
 
 describe("POST /todos", ()=>{
   it("should create a new todo", (done)=>{
@@ -33,8 +27,8 @@ describe("POST /todos", ()=>{
       expect(res.body.text).toBe(text);
       }).end((err,res)=>{
       if(err){
-        done();
-        return console.log(err);
+        return done();
+        //return console.log(err);
 
       }
       Todo.find({text}).then((result)=>{
@@ -181,19 +175,73 @@ describe("POST /todos", ()=>{
  });
 
  });
+ describe("GET /users/me",()=>{
+   it("should return user if user is authenticated",(done)=>{
+     request(app)
+     .get("/users/me")
+     .set({"x-auth":userList[0].tokens[0].token})
+     .expect(200)
+     .expect((result)=>{
+       expect(result.body.user.email).toBe(userList[0].email);
+       expect(result.body.user._id).toBe(userList[0]._id.toHexString());
+     }).end(()=>done());
+   });
 
+   it("should return 401 if user is not authenticated",(done)=>{
+     request(app)
+     .get("/users/me")
+     .expect(401)
+     .expect((result)=>{
+       expect(result.body).toBeFalsy();
+     })
+     .end(()=>done());
+   });
+ });
  describe("POST /users",()=>{
-  it("should post a user",(done)=>{
-    let newUser = {"email":"123@server.com","password":"123abc","tokens":{"access":"access1","token":"token1"}};
+  it("should create a user",(done)=>{
+    const newUserId = new ObjectId();
+    let newUser = {"_id":newUserId,"email":"mail@server.com","password":"pass123","tokens":{"access":"auth","token":jwt.sign({_id:newUserId,acess:"auth"},"abc123").toString()}};
     request(app)
     .post("/users")
     .send(newUser)
     .expect(200)
     .expect((result)=>{
+      expect(result.headers["x-auth"]).toBeTruthy();
       expect(result.body.user.email).toBe(newUser.email);
       expect(result.body.user.password).toBeFalsy();
-    }).end((e)=>done(e));
+    }).end((e)=>{
+      if(e){
+        done(e);
+      }else{
+        User.findOne({email:newUser.email}).then((user)=>{
+          expect(user).toBeTruthy();
+          expect(user.password).not.toBe(newUser.password);
+          done();
+        });
 
+      }
+    });
+
+  });
+    it("shouldn't create a user when email and password are invalid",(done)=>{
+      let newUser = {"_id":new ObjectId(),"email":"mail.server.com","password":"pass"};
+
+      request(app)
+      .post("/users")
+      .send(newUser)
+      .expect(400)
+      .end((e)=>done(e));
+
+
+    });
+  it("shouldn't create a user when email is already in use",(done)=>{
+    const newUserId = new ObjectId();
+    let newUser = {"_id":newUserId,"email":userList[0].email,"password":"pass123","tokens":{"access":"auth","token":jwt.sign({_id:newUserId,acess:"auth"},"abc123").toString()}};
+    request(app)
+    .post("/users")
+    .send(newUser)
+    .expect(400)
+    .end((e)=>done(e));
   });
 
  });
