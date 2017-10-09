@@ -2,7 +2,7 @@ var {User}=require("./../models/users");
 
 var authenticate = (req,res,next)=>{
   var token = req.header("x-auth");
-  User.findUserByToken(token).then((user)=>{
+  return User.findUserByToken(token).then((user)=>{
     if(!user){
       return Promise.reject();
     }
@@ -11,7 +11,7 @@ var authenticate = (req,res,next)=>{
     next();
     // res.send(user);
   }).catch(()=>{
-    res.status(401).send();
+    return res.status(401).send();
   });
 };
 

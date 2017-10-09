@@ -245,5 +245,53 @@ describe("POST /todos", ()=>{
   });
 
  });
+ describe("POST /users/login",()=>{
+   it("should login valid user and return authentication token",(done)=>{
+     request(app)
+     .post("/users/login")
+     .send({email:userList[0].email,password:userList[0].password})
+     .expect(200)
+     .expect((result)=>{
+       expect(result.headers["x-auth"]).toBeTruthy();
+       expect(result.body.user.email).toBe(userList[0].email);
+     }).end((err,res)=>{
+       if(err){
+         done();
+       }else{
+         User.findById({_id:userList[0]._id}).then((user)=>{
+           expect(user.tokens[user.tokens.length-1].token).toBe(res.headers["x-auth"]);
+           done();
+         }).catch((e)=>done(e));
+       }
+     });
+   });
 
+   it("should reject invalid login",(done)=>{
+     request(app)
+     .post("/users/login")
+     .send({email:userList[0].email,password:"Pass123!"})
+     .expect(400)
+     .end(done);
+   });
+ });
+
+ describe("DELETE /users/me/token",()=>{
+   it("should remove auth token on logout ",(done)=>{
+     request(app)
+     .delete("/users/me/token")
+     .set({"x-auth":userList[0].tokens[0].token})
+     .send(userList[0])
+     .expect(200)
+     .end((err,res)=>{
+       if(err){
+        return done(err);
+       }else{
+         User.findById({_id:userList[0]._id.toHexString()}).then((user)=>{
+           expect(user.tokens.length).toBe(0);
+           done();
+         }).catch(()=>done());
+       }
+     });
+   });
+ });
   });

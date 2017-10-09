@@ -47,6 +47,11 @@ UserSchema.methods.generateAutToken= function () {
   // return new Promise((resolve,reject)=>{resolve(token)});
 };
 
+UserSchema.methods.removeToken = function (token) {
+  var user = this;
+  return user.update({$pull:{tokens:{token}}});
+}
+
 UserSchema.statics.findUserByToken = function (token) {
   var User = this;
   var decoded;
