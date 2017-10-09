@@ -5,6 +5,7 @@ console.log("************Env: ",process.env.NODE_ENV,"********************");
 const express = require("express");
 const bodyParser = require("body-parser");
 const _ = require("lodash");
+const bcrypt = require("bcryptjs");
 
 const{ObjectId} = require("mongodb");
 
@@ -138,7 +139,17 @@ app.post("/users",(req,res)=>{
 });
 
 
-
+app.post("/users/login",(req,res)=>{
+  let body = _.pick(req.body,["email","password"]);
+  User.findByCredentials(body.email,body.password).then((user)=>{
+  return  user.generateAutToken().then((token)=>{
+     res.header("x-auth",token).send(user);
+    })
+  //  res.send(user);
+  }).catch(()=>{
+    res.status(400).send();
+  })
+});
 app.get("/users/me",authenticate,(req,res)=>{
   res.send(req.user);
 });
